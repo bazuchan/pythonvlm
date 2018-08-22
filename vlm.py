@@ -116,10 +116,10 @@ class Convert(object):
     def HFOV(dfov):
         return 2.0 * math.degrees(math.atan( 18.0 * math.tan(math.radians(dfov) / 2.0) * 2.0 / 43.3 ))
 
-    def readcsv(self, inputFile):
+    def readcsv(self, source, mission='mission'):
+        self.mission = mission
         self.waypoints = []
-        self.mission = os.path.basename(inputFile).rsplit('.', 1)[0]
-        reader = csv.reader(open(inputFile), delimiter=',', quotechar='"') 
+        reader = csv.reader(source, delimiter=',', quotechar='"')
         header = self.checkheader(next(reader))
         for line in reader:
             wp = WayPoint.fromcsvline(line)
@@ -223,7 +223,7 @@ class Convert(object):
                 else:
                     sp.GimbalTilt = wp.GimbalTilt + difftilt * wd / (wd+nd)
 
-    def savekml(self, kname):
+    def getkml(self):
         avgalt = sum([i.Altitude for i in self.waypoints]) / float(len(self.waypoints))
         minlat = min([i.Latitude for i in self.waypoints])
         minlon = min([i.Longitude for i in self.waypoints])
@@ -389,12 +389,13 @@ class Convert(object):
                         ),
                     )
 
-        open(kname, 'wb').write(etree.tostring(virtmission, pretty_print=True))
+        return etree.tostring(virtmission, pretty_print=True)
 
     def run(self, cname, kname):
-        self.readcsv(cname)
+        mission = os.path.basename(cname).rsplit('.', 1)[0]
+        self.readcsv(open(cname), mission)
         self.smooth()
-        self.savekml(kname)
+        open(kname, 'wb').write(self.getkml())
 
 class MyHelpFormatter(argparse.HelpFormatter):
     def __init__(self, *kc, **kv):
