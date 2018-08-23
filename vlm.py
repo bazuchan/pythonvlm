@@ -122,6 +122,8 @@ class Convert(object):
         reader = csv.reader(source, delimiter=',', quotechar='"')
         header = self.checkheader(next(reader))
         for line in reader:
+            if len(line)<8:
+                continue
             wp = WayPoint.fromcsvline(line)
             if not self.metric:
                 wp.Altitude /= 3.28084
