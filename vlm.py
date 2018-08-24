@@ -51,6 +51,8 @@ class Point(object):
 
     def altcorrect(self, googlekey, groundalt):
         self.GroundAlt = geocoder.elevation('{0},{1}'.format(self.Latitude, self.Longitude), key=googlekey).meters
+        if self.GroundAlt is None:
+            self.GroundAlt = 0.0
         if self.AltMode == 1 or groundalt is None:
             self.Altitude += self.GroundAlt
         else:
