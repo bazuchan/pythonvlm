@@ -29,7 +29,7 @@ class Point(object):
         return { key: self.__dict__[key] for key in self.__dict__.keys() if key in self.attrs }
 
     def __eq__(self, other):
-        return self.attrdict() == other.attrdict()
+        return not ( other is None or self.attrdict() != other.attrdict() )
 
     def __repr__(self):
         return repr(self.attrdict())
@@ -50,9 +50,7 @@ class Point(object):
         return math.degrees(math.asin( (to.Altitude - self.Altitude) / self.distance3d(to) )) + 90.0
 
     def altcorrect(self, googlekey, groundalt):
-        self.GroundAlt = geocoder.elevation('{0},{1}'.format(self.Latitude, self.Longitude), key=googlekey).meters
-        if self.GroundAlt is None:
-            self.GroundAlt = 0.0
+        self.GroundAlt = geocoder.elevation('{0},{1}'.format(self.Latitude, self.Longitude), key=googlekey).meters or 0.0
         if self.AltMode == 1 or groundalt is None:
             self.Altitude += self.GroundAlt
         else:
