@@ -338,10 +338,10 @@ class Convert(object):
                         KML.styleUrl('#wpmarkers'),
                         KML.ExtendedData(
                             KML.Data(KML.value(wp.Num), name='Waypoint'),
-                            KML.Data(KML.value(int(wp.Altitude)), name='Altitude_Abs'),
-                            KML.Data(KML.value(int(wp.Altitude-wp.GroundAlt)), name='Altitude_Gnd'),
-                            KML.Data(KML.value(int(wp.Heading)), name='Heading'),
-                            KML.Data(KML.value(int(wp.GimbalTilt-90.0)), name='Gimbal'),
+                            KML.Data(KML.value(round(wp.Altitude, 0)), name='Altitude_Abs'),
+                            KML.Data(KML.value(round(wp.Altitude-wp.GroundAlt, 0)), name='Altitude_Gnd'),
+                            KML.Data(KML.value(round(wp.Heading, 0)), name='Heading'),
+                            KML.Data(KML.value(round(wp.GimbalTilt-90.0, 0)), name='Gimbal'),
                             ),
                         KML.Point(
                             KML.altitudeMode("absolute"),
@@ -360,8 +360,8 @@ class Convert(object):
                         KML.styleUrl('#poimarkers'),
                         KML.ExtendedData(
                             KML.Data(KML.value(num), name='POI'),
-                            KML.Data(KML.value(int(poi.Altitude)), name='Altitude_Abs'),
-                            KML.Data(KML.value(int(poi.Altitude-poi.GroundAlt)), name='Altitude_Gnd'),
+                            KML.Data(KML.value(round(poi.Altitude, 0)), name='Altitude_Abs'),
+                            KML.Data(KML.value(round(poi.Altitude-poi.GroundAlt, 0)), name='Altitude_Gnd'),
                             ),
                         KML.Point(
                             KML.altitudeMode("absolute"),
