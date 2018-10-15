@@ -329,6 +329,11 @@ class Convert(object):
                             ),
                         ),
                     )
+            playlist.append(
+                    GX.Wait(
+                        GX.duration(0),
+                        ),
+                    )
 
         for wp in self.waypoints:
             wfolder.append(
