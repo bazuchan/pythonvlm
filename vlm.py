@@ -163,7 +163,7 @@ class Convert(object):
                 wp.GimbalTilt = self.waypoints[-1].GimbalTilt
             if wp.Poi and wp.Poi not in self.pois:
                 self.pois.append(wp.Poi)
-            else:
+            elif wp.Poi:
                 wp.Poi = self.pois[self.pois.index(wp.Poi)]
             wp.Num = len(self.waypoints)+1
             self.waypoints.append(wp)
