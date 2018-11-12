@@ -5,12 +5,42 @@ import csv
 import os
 import math
 import copy
-import geocoder
 import argparse
+import requests
+import simplejson
 from geographiclib.geodesic import Geodesic
 from pykml.factory import KML_ElementMaker as KML
 from pykml.factory import GX_ElementMaker as GX
 from lxml import etree
+
+class Elevation(object):
+    GOOGLEAPI = 'https://maps.googleapis.com/maps/api/elevation/json'
+    OPENAPI = 'https://api.open-elevation.com/api/v1/lookup'
+    MAXPERREQ = 100
+
+    def __init__(self, key=''):
+        self.key = key
+
+    def singlerequest(self, latlons):
+        try:
+            if self.key:
+                data = { 'locations': '|'.join(['{0},{1}'.format(*i[:2]) for i in latlons]), 'key': self.key }
+                r = requests.get(self.GOOGLEAPI, data, timeout=30)
+            else:
+                data = { 'locations': [ {'latitude': i[0], 'longitude': i[1]} for i in latlons ] }
+                r = requests.post(self.OPENAPI, json=data, timeout=120)
+            j = r.json()
+            e = [float(i.get('elevation', 0)) for i in j['results']]
+            assert len(e) == len(latlons)
+        except (requests.exceptions.Timeout, simplejson.errors.JSONDecodeError, KeyError, TypeError, ValueError, AssertionError):
+            return [0]*len(latlons)
+        return e
+
+    def request(self, latlons):
+        res = []
+        for k in range(0, (len(latlons)+self.MAXPERREQ-1)//self.MAXPERREQ):
+            res += self.singlerequest(latlons[k*self.MAXPERREQ:k*self.MAXPERREQ+self.MAXPERREQ])
+        return res
 
 class Point(object):
     attrs = ['Latitude', 'Longitude', 'Altitude', 'AltMode', 'GroundAlt']
@@ -49,12 +79,12 @@ class Point(object):
     def tiltto(self, to):
         return math.degrees(math.asin( (to.Altitude - self.Altitude) / self.distance3d(to) )) + 90.0
 
-    def altcorrect(self, googlekey, groundalt):
-        self.GroundAlt = geocoder.elevation('{0},{1}'.format(self.Latitude, self.Longitude), key=googlekey).meters or 0.0
-        if self.AltMode == 1 or groundalt is None:
+    def altcorrect(self, takeoffalt, groundalt):
+        self.GroundAlt = groundalt
+        if self.AltMode == 1 or takeoffalt is None:
             self.Altitude += self.GroundAlt
         else:
-            self.Altitude += groundalt
+            self.Altitude += takeoffalt
 
     @staticmethod
     def to360(x):
@@ -91,17 +121,10 @@ class WayPoint(Point):
             new.ActionType, new.ActionParam, new.Num = [], [], None
         return new
 
-    def altcorrect(self, *k, **kv):
-        super(WayPoint, self).altcorrect(*k, **kv)
-        if kv['groundalt'] is None:
-            kv['groundalt'] = self.GroundAlt
-        if self.Poi:
-            self.Poi.altcorrect(*k, **kv)
-
 class Convert(object):
-    def __init__(self, googlekey, speed=10.0, fov=85.0, groundalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
+    def __init__(self, googlekey, speed=10.0, fov=85.0, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
         self.googlekey = googlekey
-        self.groundalt = groundalt
+        self.takeoffalt = takeoffalt
         self.defspeed = speed
         self.hfov = Convert.HFOV(fov)
         self.mincurve = mincurve
@@ -132,9 +155,6 @@ class Convert(object):
                     wp.Poi.Altitude /= 3.28084
             if wp.Speed == 0:
                 wp.Speed = self.defspeed
-            wp.altcorrect(googlekey = self.googlekey, groundalt = self.groundalt)
-            if not self.groundalt and not self.waypoints:
-                self.groundalt = wp.GroundAlt
             if self.waypoints:
                 wp.Distance = wp.distanceto(self.waypoints[-1])
                 wp.Bearing = self.waypoints[-1].bearingto(wp)
@@ -143,8 +163,14 @@ class Convert(object):
                 wp.GimbalTilt = self.waypoints[-1].GimbalTilt
             if wp.Poi and wp.Poi not in self.pois:
                 self.pois.append(wp.Poi)
+            else:
+                wp.Poi = self.pois[self.pois.index(wp.Poi)]
             wp.Num = len(self.waypoints)+1
             self.waypoints.append(wp)
+        elevations = Elevation(key=self.googlekey).request([i.latlonalt() for i in self.waypoints + self.pois])
+        self.takeoffalt = self.takeoffalt or elevations[0]
+        for p in self.waypoints + self.pois:
+            p.altcorrect(self.takeoffalt, elevations.pop(0))
 
     def checkheader(self, header):
         if header[0] != 'latitude' or header[5] != 'rotationdir':
@@ -158,13 +184,13 @@ class Convert(object):
         return header
 
     def appendsmoothed(self, wp):
-        wp.Distance = wp.distanceto(self.smoothed[-1])
+        wp.Distance = wp.distance3d(self.smoothed[-1])
         wp.LegTime = wp.Distance / self.smoothed[-1].Speed
         self.smoothed.append(wp)
 
     def fillto(self, wp):
         pp = self.smoothed[-1]
-        d = math.ceil(pp.distanceto(wp)/self.infilldist)
+        d = math.ceil(pp.distance3d(wp)/self.infilldist)
         for j in range(1, int(d)):
             sp = pp.copy()
             sp.Latitude = pp.Latitude + j * (wp.Latitude - pp.Latitude) / d
@@ -420,14 +446,12 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--bezier', help='Number of points to fill curves with bezier interpolation', type=int, default=5)
     parser.add_argument('-i', '--interval', help='Divide interval between points if exceeds this value in meters', type=float, default=1000.0)
     parser.add_argument('-m', '--mincurve', help='Minimal curve radius', type=float, default=5.0)
-    parser.add_argument('-k', '--googlekey', help='Google maps elevation API key', default='internal')
+    parser.add_argument('-k', '--googlekey', help='Google maps elevation API key', default='')
     args = parser.parse_args()
 
     if not args.kmlfile:
         args.kmlfile = args.csvfile.rsplit('.', 1)[0]+'.kml'
-    if args.googlekey == 'internal':
-        args.googlekey = 'AIzaSyCeeiFtp_ZKuf3mD8kr-AmhfZpV6zQ6Ixg'
 
-    c = Convert(args.googlekey, speed=args.speed, fov=args.fov, groundalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
+    c = Convert(args.googlekey, speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
     c.run(args.csvfile, args.kmlfile)
 

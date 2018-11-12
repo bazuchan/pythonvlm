@@ -3,11 +3,21 @@
 from flask import Flask
 from flask import request
 import json
+import os
 import vlm
 
 app = Flask(__name__)
 #app.config['PROPAGATE_EXCEPTIONS'] = True
-conv = vlm.Convert(googlekey='AIzaSyCeeiFtp_ZKuf3mD8kr-AmhfZpV6zQ6Ixg')
+
+try:
+    d = os.path.dirname(os.path.abspath(__file__))
+    conf = os.path.join(d, 'config.py')
+    if os.access(conf, os.R_OK):
+        from config import googlekey
+except NameError:
+    googlekey = ''
+
+conv = vlm.Convert(googlekey=googlekey)
 
 @app.route('/convert', methods=['POST'])
 def api():
