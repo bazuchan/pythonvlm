@@ -9,13 +9,15 @@ import vlm
 app = Flask(__name__)
 #app.config['PROPAGATE_EXCEPTIONS'] = True
 
-try:
+googlekey = os.getenv('GOOGLEKEY', '')
+if not googlekey:
     d = os.path.dirname(os.path.abspath(__file__))
     conf = os.path.join(d, 'config.py')
     if os.access(conf, os.R_OK):
-        from config import googlekey
-except NameError:
-    googlekey = ''
+        try:
+            from config import googlekey
+        except NameError:
+            googlekey = ''
 
 conv = vlm.Convert(googlekey=googlekey)
 
