@@ -37,6 +37,10 @@ def api():
     resp = json.dumps({'kml':kml.decode('utf-8'), 'mission':mission})
     return resp, 200, {'Content-Type': 'application/json; charset=utf-8'}
 
+@app.route('/healthz')
+def healthz():
+    return 'HEALTH_OK\n', 200, {'Content-Type': 'application/json; charset=utf-8'}
+
 if __name__ == '__main__':
     app.run()
 
