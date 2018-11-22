@@ -39,7 +39,7 @@ def api():
 
 @app.route('/healthz')
 def healthz():
-    return 'HEALTH_OK\n', 200, {'Content-Type': 'application/json; charset=utf-8'}
+    return 'HEALTH_OK\nUsing ' + ['Google', 'Open'][int(googlekey=='')] + ' elevation API\n', 200, {'Content-Type': 'application/json; charset=utf-8'}
 
 if __name__ == '__main__':
     app.run()

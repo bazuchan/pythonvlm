@@ -8,6 +8,7 @@ import copy
 import argparse
 import requests
 import simplejson
+import logging
 from geographiclib.geodesic import Geodesic
 from pykml.factory import KML_ElementMaker as KML
 from pykml.factory import GX_ElementMaker as GX
@@ -33,6 +34,7 @@ class Elevation(object):
             e = [float(i.get('elevation', 0)) for i in j['results']]
             assert len(e) == len(latlons)
         except (requests.exceptions.Timeout, simplejson.errors.JSONDecodeError, KeyError, TypeError, ValueError, AssertionError):
+            logging.error('Elevation API error, assuming zero ground elevation')
             return [0]*len(latlons)
         return e
 
@@ -451,6 +453,8 @@ if __name__ == '__main__':
 
     if not args.kmlfile:
         args.kmlfile = args.csvfile.rsplit('.', 1)[0]+'.kml'
+
+    logging.basicConfig()
 
     c = Convert(args.googlekey, speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
     c.run(args.csvfile, args.kmlfile)
