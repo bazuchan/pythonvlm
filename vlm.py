@@ -217,9 +217,9 @@ class Convert(object):
                 self.fillto(wp.copy(full=True))
                 continue
             bz = [
-                    [ wp.latlonalt()[i] - (wp.CurveSize / wp.Distance) * (wp.latlonalt()[i] - pp.latlonalt()[i]),
+                    [ wp.latlonalt()[i] - min(0.45, wp.CurveSize / wp.Distance) * (wp.latlonalt()[i] - pp.latlonalt()[i]),
                       wp.latlonalt()[i],
-                      wp.latlonalt()[i] + (wp.CurveSize / np.Distance) * (np.latlonalt()[i] - wp.latlonalt()[i]),
+                      wp.latlonalt()[i] + min(0.45, wp.CurveSize / np.Distance) * (np.latlonalt()[i] - wp.latlonalt()[i]),
                     ] for i in range(0, 3)
                  ]
             for b in range(0, self.nbezier):
