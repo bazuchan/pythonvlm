@@ -144,6 +144,7 @@ class Convert(object):
     def readcsv(self, source, mission='mission'):
         self.mission = mission
         self.waypoints = []
+        self.pois = []
         reader = csv.reader(source, delimiter=',', quotechar='"')
         header = self.checkheader(next(reader))
         for line in reader:
