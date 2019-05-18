@@ -1,7 +1,7 @@
 {
   "name": "Chrome Litchi Virtual Mission",
-  "version": "0.1.1",
-  "description": "Hooks download of mission csv file from mission hub and opens it as virtual mission in google earth",
+  "version": "0.1.2",
+  "description": "Adds ability to export mission from mission hub as google earth virtual tour",
   "content_scripts": [
     {
       "matches": ["https://flylitchi.com/hub*"],
