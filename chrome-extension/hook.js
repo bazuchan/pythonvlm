@@ -3,6 +3,7 @@ var hijack = function(){
 
   GStool.exportVLMtoFile = function(){
     console.log('Converting:', arguments['1']);
+    arguments['defspeed'] = GStool.currMission.horizontalSpeed;
     h = new Headers();
     h.append("Content-Type", "application/json");
     fetch('https://vlm.baz.pw/convert', {

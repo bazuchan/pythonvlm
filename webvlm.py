@@ -24,7 +24,11 @@ def api():
     j = request.get_json()
     if not j or not '0' in j.keys() or not '1' in j.keys():
         return 'Bad request\n', 400, {'Content-Type': 'text/plain; charset=utf-8'}
-    conv = vlm.Convert(googlekey=googlekey)
+    try:
+        defspeed = float(j['defspeed'])
+    except (KeyError, ValueError):
+        defspeed = 10
+    conv = vlm.Convert(googlekey=googlekey, speed=defspeed)
     try:
         mission = j['1'].rsplit('.', 1)[0]
         csv = j['0'].split('\n')
