@@ -10,14 +10,7 @@ app = Flask(__name__)
 #app.config['PROPAGATE_EXCEPTIONS'] = True
 
 googlekey = os.getenv('GOOGLEKEY', '')
-if not googlekey:
-    d = os.path.dirname(os.path.abspath(__file__))
-    conf = os.path.join(d, 'config.py')
-    if os.access(conf, os.R_OK):
-        try:
-            from config import googlekey
-        except NameError:
-            googlekey = ''
+openapiurl = os.getenv('OPENAPIURL', '')
 
 @app.route('/convert', methods=['POST'])
 def api():
@@ -28,7 +21,7 @@ def api():
         defspeed = float(j['defspeed'])
     except (KeyError, ValueError):
         defspeed = 10
-    conv = vlm.Convert(googlekey=googlekey, speed=defspeed)
+    conv = vlm.Convert(googlekey=googlekey, openapiurl=openapiurl, speed=defspeed)
     try:
         mission = j['1'].rsplit('.', 1)[0]
         csv = j['0'].split('\n')

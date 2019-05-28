@@ -19,8 +19,9 @@ class Elevation(object):
     OPENAPI = 'https://api.open-elevation.com/api/v1/lookup'
     MAXPERREQ = 100
 
-    def __init__(self, key=''):
+    def __init__(self, key='', openapi=''):
         self.key = key
+        self.openapi = openapi or self.OPENAPI
 
     def singlerequest(self, latlons):
         try:
@@ -29,7 +30,7 @@ class Elevation(object):
                 r = requests.get(self.GOOGLEAPI, data, timeout=30)
             else:
                 data = { 'locations': [ {'latitude': i[0], 'longitude': i[1]} for i in latlons ] }
-                r = requests.post(self.OPENAPI, json=data, timeout=120)
+                r = requests.post(self.openapi, json=data, timeout=120)
             j = r.json()
             e = [float(i.get('elevation', 0)) for i in j['results']]
             assert len(e) == len(latlons)
@@ -124,8 +125,9 @@ class WayPoint(Point):
         return new
 
 class Convert(object):
-    def __init__(self, googlekey, speed=10.0, fov=85.0, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
+    def __init__(self, googlekey='', openapiurl='', speed=10.0, fov=85.0, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
         self.googlekey = googlekey
+        self.openapiurl = openapiurl
         self.takeoffalt = takeoffalt
         self.defspeed = speed
         self.hfov = Convert.HFOV(fov)
@@ -170,7 +172,7 @@ class Convert(object):
                 wp.Poi = self.pois[self.pois.index(wp.Poi)]
             wp.Num = len(self.waypoints)+1
             self.waypoints.append(wp)
-        elevations = Elevation(key=self.googlekey).request([i.latlonalt() for i in self.waypoints + self.pois])
+        elevations = Elevation(key=self.googlekey, openapi=self.openapiurl).request([i.latlonalt() for i in self.waypoints + self.pois])
         self.takeoffalt = self.takeoffalt or elevations[0]
         for p in self.waypoints + self.pois:
             p.altcorrect(self.takeoffalt, elevations.pop(0))
@@ -450,6 +452,7 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--interval', help='Divide interval between points if exceeds this value in meters', type=float, default=1000.0)
     parser.add_argument('-m', '--mincurve', help='Minimal curve radius', type=float, default=5.0)
     parser.add_argument('-k', '--googlekey', help='Google maps elevation API key', default='')
+    parser.add_argument('-e', '--openelevation', help='OpenElevation API host', default='api.open-elevation.com')
     args = parser.parse_args()
 
     if not args.kmlfile:
@@ -457,6 +460,6 @@ if __name__ == '__main__':
 
     logging.basicConfig()
 
-    c = Convert(args.googlekey, speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
+    c = Convert(googlekey=args.googlekey, openapiurl='https://{0}/api/v1/lookup'.format(args.openelevation), speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
     c.run(args.csvfile, args.kmlfile)
 
