@@ -6,6 +6,18 @@ import json
 import os
 import vlm
 
+DRONES = {
+  'm2phq': {'fov': 55.0, },
+  'm2pfov': {'fov': 75.0, },
+  'm2z': {'fov': 83.0, },
+  'mp': {'fov': 78.8, },
+  'ma': {'fov': 85.0, },
+  'spark': {'fov': 81.9, },
+  'p4p': {'fov': 84.0, },
+  'p4a': {'fov': 84.0, },
+  'p42': {'fov': 84.0, },
+}
+
 app = Flask(__name__)
 #app.config['PROPAGATE_EXCEPTIONS'] = True
 
@@ -18,10 +30,24 @@ def api():
     if not j or not '0' in j.keys() or not '1' in j.keys():
         return 'Bad request\n', 400, {'Content-Type': 'text/plain; charset=utf-8'}
     try:
-        defspeed = float(j['defspeed'])
+        defspeed = float(j['horizontalSpeed'])
     except (KeyError, ValueError):
-        defspeed = 10
-    conv = vlm.Convert(googlekey=googlekey, openapiurl=openapiurl, speed=defspeed)
+        try:
+            defspeed = float(j['defspeed'])
+        except (KeyError, ValueError):
+            defspeed = 10.0
+    try:
+        infilldist = float(j['maxWPDist'])
+    except (KeyError, ValueError):
+        infilldist = 1000.0
+    try:
+        if j['droneModel'] == 'custom':
+            fov = float(j['customFOV'])
+        else:
+            fov = DRONES[j['droneModel']]['fov']
+    except (KeyError, ValueError):
+        fov = DRONES['m2phq']['fov']
+    conv = vlm.Convert(googlekey=googlekey, openapiurl=openapiurl, speed=defspeed, infilldist=infilldist, fov=fov)
     try:
         mission = j['1'].rsplit('.', 1)[0]
         csv = j['0'].split('\n')
