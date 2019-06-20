@@ -261,11 +261,11 @@ class Convert(object):
         minlat = min([i.Latitude for i in self.waypoints])
         minlon = min([i.Longitude for i in self.waypoints])
         maxlon = max([i.Longitude for i in self.waypoints])
-        maxang = max([i.Latitude + (i.Altitude-avgalt) / (111120.0 * math.cos(math.radians(-20))) for i in self.waypoints])
-        if abs(maxlon - minlon) > abs(maxang - minlat):
+        maxlat = max([i.Latitude + (i.Altitude-avgalt) / (60.0 * 1852.0 * math.cos(math.radians(-20))) for i in self.waypoints])
+        if abs(maxlon - minlon) > abs(maxlat - minlat):
             rang = abs(maxlon - minlon) * 60.0 * 1852.0 / (2.0 * math.sin(math.radians(self.hfov) / 2.0)) * 1.2
         else:
-            rang = abs(maxang - minlat) * 60.0 * 1852.0 / (2.0 * math.sin(math.radians(self.hfov) / 2.0)) * 16.0 / 9.0
+            rang = abs(maxlat - minlat) * 60.0 * 1852.0 / (2.0 * math.sin(math.radians(self.hfov) / 2.0)) * 16.0 / 9.0
         txtwaypoints = ' '.join(['%f,%f,%f' % (i.Longitude, i.Latitude, i.Altitude) for i in self.waypoints])
         txtsmoothed = ' '.join(['%f,%f,%f' % (i.Longitude, i.Latitude, i.Altitude) for i in self.smoothed])
 
@@ -279,7 +279,7 @@ class Convert(object):
                 KML.Document(
                     KML.name(self.mission),
                     KML.LookAt(
-                        KML.latitude( (minlat+maxang)/2.0 ),
+                        KML.latitude( (minlat+maxlat)/2.0 ),
                         KML.longitude( (minlon+maxlon)/2.0 ),
                         KML.altitude(avgalt),
                         KML.heading(0),
