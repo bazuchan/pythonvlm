@@ -414,7 +414,7 @@ class Convert(object):
                     KML.Document(
                         KML.name('WP%03d' % (wp.Num)),
                         KML.visibility(0),
-                        GX.Camera(
+                        KML.Camera(
                             KML.latitude(wp.Latitude),
                             KML.longitude(wp.Longitude),
                             KML.altitude(wp.Altitude),
