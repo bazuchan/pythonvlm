@@ -3,7 +3,18 @@ var hijack = function(){
 
   GStool.exportVLMtoFile = function(){
     console.log('Converting:', arguments['1']);
+    arguments['unit'] = GStool.unit;
+    arguments['headingMode'] = GStool.currMission.headingMode;
+    arguments['finishAction'] = GStool.currMission.finishAction;
+    arguments['pathMode'] = GStool.currMission.pathMode;
+    arguments['horizontalSpeed'] = GStool.currMission.horizontalSpeed;
+    arguments['rcSpeed'] = GStool.currMission.rcSpeed;
+    arguments['defaultCurveSize'] = GStool.curves.defaultCurveSize;
+    arguments['defaultGimbalPitchMode'] = GStool.curves.defaultGimbalPitchMode;
     arguments['defspeed'] = GStool.currMission.horizontalSpeed;
+    arguments['droneModel'] = GStool.extension.droneModel;
+    arguments['customFOV'] = GStool.extension.customFOV;
+    arguments['maxWPDist'] = GStool.extension.maxWPDist;
     h = new Headers();
     h.append("Content-Type", "application/json");
     fetch('https://vlm.baz.pw/convert', {
@@ -62,4 +73,31 @@ var hijack = function(){
 var script = document.createElement('script');
 script.textContent = "(" + hijack.toString() + ")()";
 document.head.appendChild(script);
+
+function setting(v, x){
+  var settings = document.createElement('script');
+  settings.textContent = "(function(x){ if (!GStool.extension) GStool.extension = {}; GStool.extension." + v + " = x; })(\"" + x + "\")";
+  document.head.appendChild(settings);
+  document.head.removeChild(settings);
+  console.log("Updated " + v + " to: " + x);
+}
+
+chrome.storage.local.get({
+  droneModel: 'm2phq',
+  customFOV: 90.0,
+  maxWPDist: 1000
+}, function(items){
+  setting("droneModel", items.droneModel);
+  setting("customFOV", items.customFOV);
+  setting("maxWPDist", items.maxWPDist);
+});
+
+chrome.storage.local.onChanged.addListener(function (items){
+  if (items.droneModel)
+    setting("droneModel", items.droneModel.newValue);
+  if (items.customFOV)
+    setting("customFOV", items.customFOV.newValue);
+  if (items.maxWPDist)
+    setting("maxWPDist", items.maxWPDist.newValue);
+});
 

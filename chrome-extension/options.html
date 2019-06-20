@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="ie=edge" http-equiv="X-UA-Compatible"/>
+    <title>Chrome VLM Settings</title>
+  </head>
+  <body>
+    <div class="container" style="margin: 0% 3%;">
+      <div class="row" style="margin: 20px 10px;">
+          <h3>Chrome VLM Settings</h3>
+      </div>
+      <div class="row" style="margin: 20px 10px;">
+        <div class="section">
+          Drone model:
+        </div>
+        <div class="section">
+          <select id="drone">
+            <option value="m2phq">Mavic 2 Pro HQ Mode</option>
+            <option value="m2pfov">Mavic 2 Pro FOV Mode</option>
+            <option value="m2z">Mavic 2 Zoom</option>
+            <option value="mp">Mavic Pro</option>
+            <option value="ma">Mavic Air</option>
+            <option value="spark">Spark</option>
+            <option value="p4p">Phantom 4 Pro</option>
+            <option value="p4a">Phantom 4 Advanced</option>
+            <option value="p42">Phantom 4 2.0</option>
+            <option value="custom">Custom FOV</option>
+          </select>
+          <input type="number" step=0.1 min=30 max=120 hidden=true id="customfov"/>
+        </div>
+      </div>
+      <div class="row" style="margin: 20px 10px;">
+        <div class="section">
+          Fill long segnments with extra waypoints every X meters:
+        </div>
+        <div class="section">
+          <input type="number" step=10 min=10 max=10000 id="maxwpdist"/>
+        </div>
+      </div>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
+
