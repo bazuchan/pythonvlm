@@ -125,12 +125,12 @@ class WayPoint(Point):
         return new
 
 class Convert(object):
-    def __init__(self, googlekey='', openapiurl='', speed=10.0, fov=85.0, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
+    def __init__(self, googlekey='', openapiurl='', speed=10.0, fov=85.0, hfov=None, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
         self.googlekey = googlekey
         self.openapiurl = openapiurl
         self.takeoffalt = takeoffalt
         self.defspeed = speed
-        self.hfov = Convert.HFOV(fov)
+        self.hfov = hfov or Convert.HFOV(fov)
         self.mincurve = mincurve
         self.nbezier = nbezier
         self.infilldist = infilldist
@@ -141,7 +141,7 @@ class Convert(object):
 
     @staticmethod
     def HFOV(dfov):
-        return 2.0 * math.degrees(math.atan( 18.0 * math.tan(math.radians(dfov) / 2.0) * 2.0 / 43.3 ))
+        return 2.0 * math.degrees(math.atan( math.tan(math.radians(dfov) / 2.0) * 16.0/math.sqrt(16.0**2+9.0**2) ))
 
     def readcsv(self, source, mission='mission'):
         self.mission = mission
