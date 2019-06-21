@@ -1,6 +1,6 @@
 {
   "name": "Chrome Litchi Virtual Mission",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Adds ability to export mission from mission hub as google earth virtual tour",
   "content_scripts": [
     {
