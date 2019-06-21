@@ -456,7 +456,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mincurve', help='Minimal curve radius', type=float, default=5.0)
     parser.add_argument('-k', '--googlekey', help='Google maps elevation API key', default='')
     parser.add_argument('-e', '--openelevation', help='OpenElevation API host', default='api.open-elevation.com')
-    parser.add_argument('-t', '--twn', help='Toward Next Waypoint mode', action='store_true')
+    parser.add_argument('-t', '--tnw', help='Toward Next Waypoint mode', action='store_true')
     args = parser.parse_args()
 
     if not args.kmlfile:
@@ -464,6 +464,6 @@ if __name__ == '__main__':
 
     logging.basicConfig()
 
-    c = Convert(googlekey=args.googlekey, openapiurl='https://{0}/api/v1/lookup'.format(args.openelevation), speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval, headingmode=[3, 0][int(args.twn)])
+    c = Convert(googlekey=args.googlekey, openapiurl='https://{0}/api/v1/lookup'.format(args.openelevation), speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval, headingmode=[3, 0][int(args.tnw)])
     c.run(args.csvfile, args.kmlfile)
 
