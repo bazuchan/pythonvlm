@@ -125,7 +125,7 @@ class WayPoint(Point):
         return new
 
 class Convert(object):
-    def __init__(self, googlekey='', openapiurl='', speed=10.0, fov=85.0, hfov=None, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0):
+    def __init__(self, googlekey='', openapiurl='', speed=10.0, fov=85.0, hfov=None, takeoffalt=None, mincurve=5.0, nbezier=5, infilldist=1000.0, headingmode=3):
         self.googlekey = googlekey
         self.openapiurl = openapiurl
         self.takeoffalt = takeoffalt
@@ -134,6 +134,7 @@ class Convert(object):
         self.mincurve = mincurve
         self.nbezier = nbezier
         self.infilldist = infilldist
+        self.headingmode = headingmode
         self.metric = True
         self.waypoints = []
         self.pois = []
@@ -249,6 +250,8 @@ class Convert(object):
                 nd = sp.distance3d(np)
                 if wp.Poi and wp.Poi == np.Poi:
                     sp.Heading = sp.bearingto(wp.Poi)
+                elif self.headingmode == 0:
+                    sp.Heading = sp.bearingto(self.smoothed[si+1])
                 else:
                     sp.Heading = WayPoint.to360(wp.Heading + diffhead * wd / (wd+nd))
                 if wp.Poi and wp.Poi == np.Poi and wp.GimbalMode == 1 and np.GimbalMode == 1:
@@ -453,6 +456,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mincurve', help='Minimal curve radius', type=float, default=5.0)
     parser.add_argument('-k', '--googlekey', help='Google maps elevation API key', default='')
     parser.add_argument('-e', '--openelevation', help='OpenElevation API host', default='api.open-elevation.com')
+    parser.add_argument('-t', '--twn', help='Toward Next Waypoint mode', action='store_true')
     args = parser.parse_args()
 
     if not args.kmlfile:
@@ -460,6 +464,6 @@ if __name__ == '__main__':
 
     logging.basicConfig()
 
-    c = Convert(googlekey=args.googlekey, openapiurl='https://{0}/api/v1/lookup'.format(args.openelevation), speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval)
+    c = Convert(googlekey=args.googlekey, openapiurl='https://{0}/api/v1/lookup'.format(args.openelevation), speed=args.speed, fov=args.fov, takeoffalt=args.ground, mincurve=args.mincurve, nbezier=args.bezier, infilldist=args.interval, headingmode=[3, 0][int(args.twn)])
     c.run(args.csvfile, args.kmlfile)
 

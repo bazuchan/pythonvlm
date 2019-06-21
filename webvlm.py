@@ -47,7 +47,11 @@ def api():
             fov = DRONES[j['droneModel']]['fov']
     except (KeyError, ValueError):
         fov = DRONES['m2phq']['fov']
-    conv = vlm.Convert(googlekey=googlekey, openapiurl=openapiurl, speed=defspeed, infilldist=infilldist, fov=fov)
+    try:
+        headingmode = int(j['headingMode'])
+    except (KeyError, ValueError):
+        headingmode = 3
+    conv = vlm.Convert(googlekey=googlekey, openapiurl=openapiurl, speed=defspeed, infilldist=infilldist, fov=fov, headingmode=headingmode)
     try:
         mission = j['1'].rsplit('.', 1)[0]
         csv = j['0'].split('\n')
