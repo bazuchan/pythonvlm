@@ -1,6 +1,18 @@
 var hijack = function(){
   console.log('Adding js to document');
 
+  window.addEventListener('message', function(ev){
+    if (!GStool.extension)
+      GStool.extension = {};
+    if (ev.data.droneModel)
+      GStool.extension.droneModel = ev.data.droneModel;
+    if (ev.data.customFOV)
+      GStool.extension.customFOV = ev.data.customFOV;
+    if (ev.data.maxWPDist)
+      GStool.extension.maxWPDist = ev.data.maxWPDist;
+    console.log('Message:', ev.data);
+  }, true);
+
   GStool.exportVLMtoFile = function(){
     console.log('Converting:', arguments['1']);
     arguments['unit'] = GStool.unit;
@@ -74,30 +86,24 @@ var script = document.createElement('script');
 script.textContent = "(" + hijack.toString() + ")()";
 document.head.appendChild(script);
 
-function setting(v, x){
-  var settings = document.createElement('script');
-  settings.textContent = "(function(x){ if (!GStool.extension) GStool.extension = {}; GStool.extension." + v + " = x; })(\"" + x + "\")";
-  document.head.appendChild(settings);
-  document.head.removeChild(settings);
-  console.log("Updated " + v + " to: " + x);
-}
-
 chrome.storage.local.get({
   droneModel: 'm2phq',
   customFOV: 90.0,
   maxWPDist: 1000
 }, function(items){
-  setting("droneModel", items.droneModel);
-  setting("customFOV", items.customFOV);
-  setting("maxWPDist", items.maxWPDist);
+  window.postMessage({
+    droneModel: items.droneModel,
+    customFOV: items.customFOV,
+    maxWPDist: items.maxWPDist,
+  }, "*");
 });
 
 chrome.storage.local.onChanged.addListener(function (items){
   if (items.droneModel)
-    setting("droneModel", items.droneModel.newValue);
+    window.postMessage({ droneModel: items.droneModel.newValue, }, "*");
   if (items.customFOV)
-    setting("customFOV", items.customFOV.newValue);
+    window.postMessage({ customFOV: items.customFOV.newValue, }, "*");
   if (items.maxWPDist)
-    setting("maxWPDist", items.maxWPDist.newValue);
+    window.postMessage({ maxWPDist: items.maxWPDist.newValue, }, "*");
 });
 
