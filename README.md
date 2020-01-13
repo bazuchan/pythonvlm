@@ -15,6 +15,3 @@ Example usage:
  - google-earth-pro /path/to/mymission.kml
  - Click mission name under "Temporary places" and double-click "Virtual mission"
 
-Notes:
- - Code is compatible with python3, but pykml is not python3 ready, so you'll have to fix a couple of lines in pykml in order to make it work
-
